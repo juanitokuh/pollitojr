@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gran Apertura | Pollito Jr</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:#f9dcd6;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+.card{
+    background:white;
+    width:90%;
+    max-width:500px;
+    padding:40px 30px;
+    border-radius:25px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.15);
+    text-align:center;
+}
+.logo{ width:150px; }
+h1{ color:#7a3e1d; }
+button{
+    margin-top:20px;
+    padding:14px 30px;
+    font-size:18px;
+    border:none;
+    border-radius:40px;
+    background:#7a3e1d;
+    color:white;
+    cursor:pointer;
+}
+button:disabled{
+    background:gray;
+    cursor:not-allowed;
+}
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+}
+.modal-box{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+}
+input{
+    width:90%;
+    padding:10px;
+    margin:10px 0;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+.win{ color:#28a745; font-weight:600; }
+.lose{ color:#c0392b; font-weight:600; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <img src="logo.png" class="logo">
+    <h1>Gran Apertura 🎉</h1>
+    <p>Ingresa tus datos y prueba tu suerte</p>
+    <button id="btn" onclick="abrirRegistro()">Probar suerte</button>
+</div>
+
+<!-- Modal Registro -->
+<div class="modal" id="registroModal">
+    <div class="modal-box">
+        <h3>Introduce tus datos</h3>
+        <input type="text" id="nombre" placeholder="Tu nombre">
+        <input type="tel" id="telefono" placeholder="Tu número">
+        <br>
+        <button onclick="probar()">Aceptar</button>
+    </div>
+</div>
+
+<!-- Modal Resultado -->
+<div class="modal" id="resultadoModal">
+    <div class="modal-box" id="resultadoBox">
+        <div id="mensaje"></div>
+        <br>
+        <button onclick="cerrar()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+
+const webhookURL = "https://discord.com/api/webhooks/1471334655725666427/EDJJBwng5uBDQ3BwJd4AFZvGRRCYO2rLKRzTVQhCPj9dE03egEGVSfokaURMEeW-NW8E";
+
+function abrirRegistro(){
+    if(localStorage.getItem("ya_participo")){
+        alert("Este dispositivo ya participó.");
+        return;
+    }
+    document.getElementById("registroModal").style.display="flex";
+}
+
+function probar(){
+
+    let nombre = document.getElementById("nombre").value.trim();
+    let telefono = document.getElementById("telefono").value.trim();
+
+    if(nombre === "" || telefono === ""){
+        alert("Completa todos los campos.");
+        return;
+    }
+
+    document.getElementById("registroModal").style.display="none";
+
+    let r = Math.random()*100;
+    let premio;
+
+    if(r < 40) premio="Burrito Gratis";
+    else if(r < 75) premio="Nada";
+    else if(r < 85) premio="Chilaquiles Gratis";
+    else if(r < 95) premio="Agua Gratis";
+    else premio="Torta de Lomo Gratis";
+
+    mostrarResultado(nombre, telefono, premio);
+    enviarWebhook(nombre, telefono, premio);
+
+    localStorage.setItem("ya_participo", "si");
+    document.getElementById("btn").disabled = true;
+}
+
+function mostrarResultado(nombre, telefono, premio){
+    let mensaje = document.getElementById("mensaje");
+    let box = document.getElementById("resultadoBox");
+
+    if(premio === "Nada"){
+        box.className="modal-box lose";
+        mensaje.innerHTML="😔 No obtuviste suerte esta vez.<br>Gracias por participar.";
+    }else{
+        box.className="modal-box win";
+        mensaje.innerHTML="🎉 ¡Felicidades!<br>Ganaste: <b>"+premio+"</b>";
+    }
+
+    document.getElementById("resultadoModal").style.display="flex";
+}
+
+function cerrar(){
+    document.getElementById("resultadoModal").style.display="none";
+}
+
+function enviarWebhook(nombre, telefono, premio){
+
+    fetch(webhookURL,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            embeds: [{
+                title: "🎉 Nuevo participante - Gran Apertura",
+                color: 16373462, 
+                fields: [
+                    {
+                        name: "👤 Nombre",
+                        value: nombre,
+                        inline: true
+                    },
+                    {
+                        name: "📞 Teléfono",
+                        value: telefono,
+                        inline: true
+                    },
+                    {
+                        name: "🏆 Premio",
+                        value: premio,
+                        inline: false
+                    }
+                ],
+                footer: {
+                    text: "Pollito Jr • Flavor since 1957"
+                },
+                timestamp: new Date()
+            }]
+        })
+    });
+
+}
+
+</script>
+
+</body>
+</html>
